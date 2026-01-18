@@ -1,0 +1,91 @@
+---
+title: 'Credit Scoring Analysis: Predección y perfilamiento de riesgo de morosidad'
+author: "Dante L. Mendoza Stretz"
+date: "2026-01-18"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+**Objetivo:** Ayudar a las entidades financieras a identificar patrones en los clientes que no pagan.
+
+# Readme
+
+El README es tu currículum,debe tener:
+
+    * Título e Imagen: Un gráfico impactante del proyecto al inicio.
+
+    * El Problema: "¿Cómo reducir la cartera vencida del banco?"
+
+    * La Solución: "Analicé 8,471 clientes y detecté que el factor X es el más determinante..."
+
+    * Tecnologías: R, Tidyverse, Haven, Ggplot2.
+
+    * Hallazgos Clave: (Ej: "Los clientes menores de 30 años sin aval tienen un 40% más de riesgo").
+
+# 1. Configuración del entorno
+
+```{r}
+rm(list = ls())
+graphics.off()
+cat("\014")
+#setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+#getwd()
+
+options(digits = 3)
+options(scipen = 999)
+
+# Paquetes ----------------------------------------------------- 
+library(pacman) # Package Manager
+p_load(foreign, colourpicker, plotrix, PerformanceAnalytics,
+       ggplot2, gganimate, png, plotly, forcats,
+       RColorBrewer, maps, mapdata, lubridate, scales,
+       esquisse, cowplot, patchwork)
+```
+
+# 2. Lectura de datos
+
+**Opción 1**
+
+Con la librería foreing se obtiene un data frame.
+
+```{r}
+
+library(foreign)
+datos <- read.spss("../01_data/BBDD_analisisMorosidad.sav", 
+                  use.value.labels = TRUE,  
+                  to.data.frame = TRUE)
+attr(datos, "variable.labels") <- NULL
+
+str(datos)
+
+```
+
+**Opción 2**
+
+Con la librería haven se obtiene un tibble
+
+```{r}
+
+library(haven)
+datos2 <- read_sav("../01_data/BBDD_analisisMorosidad.sav")
+library(labelled)
+val_labels(datos2)
+datos2 <- to_factor(datos2)
+datos2 <- remove_labels(datos2)
+#str(datos2)
+```
+
+
+
+
+
+
+
+
+
+
