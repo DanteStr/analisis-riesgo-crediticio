@@ -14,4 +14,4 @@
 "0","p_load(foreign, colourpicker, plotrix, PerformanceAnalytics,"
 "0","       ggplot2, gganimate, png, plotly, forcats,"
 "0","       RColorBrewer, maps, mapdata, lubridate, scales,"
-"0","       esquisse, cowplot, patchwork)"
+"0","       esquisse, cowplot, patchwork, dplyr)"

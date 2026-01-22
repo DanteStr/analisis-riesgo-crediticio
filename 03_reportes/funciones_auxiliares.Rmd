@@ -1,0 +1,159 @@
+---
+title: "Funciones para automatizar el EDA"
+author: "Dante L. Mendoza Stretz"
+date: "2026-01-22"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+# 1. Preparación del entorno e importación de los datos
+
+```{r}
+# Paquetes ----------------------------------------------------- 
+library(pacman) # Package Manager
+p_load(foreign, colourpicker, plotrix, PerformanceAnalytics,
+       ggplot2, gganimate, png, plotly, forcats,
+       RColorBrewer, maps, mapdata, lubridate, scales,
+       esquisse, cowplot, patchwork, dplyr)
+```
+
+```{r}
+
+library(foreign)
+df <- read.spss("../01_data/BBDD_analisisMorosidad.sav", 
+                  use.value.labels = TRUE,  
+                  to.data.frame = TRUE)
+attr(df, "variable.labels") <- NULL
+
+str(df)
+```
+
+# 2. Funciones para la elaboración de los gráficos Bivariados
+
+# 2.1. Selección de variables
+
+```{r}
+target <- "morosidad"
+
+# Variables numéria
+vars_numericas <- names(df |> select(where(is.numeric)))
+
+# Variables categóricas
+vars_categoricas <- names(df |> select(where(is.factor)))
+vars_categoricas <- vars_categoricas[vars_categoricas != target]
+
+print(paste("Numéricas a analizar:", paste(vars_numericas, collapse = ", ")))
+print(paste("Categóricas a analizar:", paste(vars_categoricas, collapse = ", ")))
+```
+
+# 2.2.Función para gráficos de las variables categóricas
+
+```{r}
+plot_categorica <- function(datos, variable, target_var) {
+  
+  # Convertimos strings a símbolos para ggplot
+  x_sym <- rlang::sym(variable)
+  fill_sym <- rlang::sym(target_var)
+  
+  # Preparamos porcentajes
+  datos_plot <- datos %>%
+    group_by(!!x_sym, !!fill_sym) %>%
+    summarise(n = n(), .groups = "drop") %>%
+    group_by(!!x_sym) %>%
+    mutate(prop = n / sum(n))
+  
+  # Gráfico
+  ggplot(datos_plot, aes(x = !!x_sym, y = prop, fill = !!fill_sym)) +
+    geom_col(position = "fill", width = 0.6) +
+    
+    # Etiqueta solo para los morosos
+    geom_text(aes(label = ifelse(!!fill_sym == "Moroso", 
+                                 scales::percent(prop, accuracy = 0.1), "")),
+              position = position_fill(vjust = 0.5),
+              color = "white", fontface = "bold", size = 3) +
+    
+    scale_y_continuous(labels = scales::percent) +
+    ggthemes::scale_fill_tableau() + # Colores profesionales
+    labs(
+      title = paste("Morosidad según:", toupper(variable)),
+      subtitle = "Proporción de incumplimiento por categoría",
+      x = NULL, y = "Proporción", fill = "Estado"
+    ) +
+    theme_minimal() +
+    theme(legend.position = "top")
+}
+```
+
+## 2.3. Función para los gráficos de las variables numéricas
+
+
+```{r}
+plot_numerica <- function(datos, variable, target_var) {
+  
+  x_sym <- rlang::sym(target_var) # En el eje X ponemos Moroso/No Moroso
+  y_sym <- rlang::sym(variable)   # En el eje Y ponemos la Edad/Antigüedad
+  
+  ggplot(datos, aes(x = !!x_sym, y = !!y_sym, fill = !!x_sym)) +
+    # Geom Boxplot dibuja la caja, los bigotes y los outliers
+    geom_boxplot(alpha = 0.7, outlier.colour = "red", outlier.shape = 1) +
+    
+    ggthemes::scale_fill_tableau() +
+    labs(
+      title = paste("Distribución de:", toupper(variable)),
+      subtitle = paste("¿Varía la", variable, "entre quienes pagan y quienes no?"),
+      x = NULL, y = variable
+    ) +
+    theme_minimal() +
+    theme(legend.position = "none") # No hace falta leyenda, el eje X lo dice
+}
+```
+
+
+# 2.4. Llamado de las funciones
+
+```{r}
+# Generar gráficos categóricos
+plots_cat <- purrr::map(vars_categoricas, ~plot_categorica(df, .x, target))
+
+# Generar gráficos numéricos
+plots_num <- purrr::map(vars_numericas, ~plot_numerica(df, .x, target))
+
+# --- MOSTRAR LOS RESULTADOS EN EL RMARKDOWN ---
+
+# 1. Sección Numéricas
+print("### Análisis de Variables Numéricas")
+purrr::walk(plots_num, print)
+
+# 2. Sección Categóricas
+print("### Análisis de Variables Categóricas")
+purrr::walk(plots_cat, print)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

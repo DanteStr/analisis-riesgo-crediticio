@@ -1,5 +1,13 @@
-"0","str(datos)
+"0",""
+"0","library(foreign)"
+"0","df <- read.spss(""../01_data/BBDD_analisisMorosidad.sav"", "
+"0","                  use.value.labels = TRUE,  "
+"0","                  to.data.frame = TRUE)"
+"2","re-encoding from CP1252
 "
+"0","attr(df, ""variable.labels"") <- NULL"
+"0",""
+"0","str(df)"
 "1","'data.frame':	"
 "1",""
 "1","8471"
